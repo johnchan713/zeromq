@@ -3,7 +3,6 @@
 #include <zmsg.hpp>
 #include <zhelpers.hpp>
 #include <iostream>
-//#include <czmq.h>
 
 #define GLOBAL_TIMEOUT 2500
 
@@ -89,14 +88,7 @@ zmsg *flclient_request(flclient_t * self, zmsg ** request_p)
 	    part2 = (char *) reply->pop_front().c_str();
 	    part3 = (char *) reply->pop_front().c_str();
 
-	    //debug purpose
-	    //std::cout << "First frame : " << part1 << std::endl;
-	    //std::cout << "second frame : " << part2 << std::endl;
-	    //std::cout << "third frame : " << part3 << std::endl;
-
 	    int sequence_nbr = atoi(part3.c_str());
-	    //std::cout << "received sequence no. from third frame : " << sequence_nbr << std::endl;
-	    //std::cout << "Our sequence number: " << self->sequence << std::endl;
 
 	    if (sequence_nbr == self->sequence)
 		break;
