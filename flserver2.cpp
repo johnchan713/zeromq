@@ -1,7 +1,6 @@
 //-----------------ZMQ_CPP_FREELANCE2_SERVER---------------
 #include <zmq.hpp>
 #include <zmsg.hpp>
-#include <stdio.h>
 #include <iostream>
 
 int main(int argc, char *argv[])
@@ -27,10 +26,6 @@ int main(int argc, char *argv[])
 
 	std::string identity = (char *) (*msg).pop_front().c_str();
 	std::string sequence = (char *) (*msg).pop_front().c_str();
-
-	//debug purpose
-	//std::cout << "Part1 received : " << identity << std::endl;
-	//std::cout << "Part2 received : " << sequence << std::endl;
 
 	zmsg *reply = new zmsg();
 	reply->push_front(const_cast<char*>(identity.c_str()));
