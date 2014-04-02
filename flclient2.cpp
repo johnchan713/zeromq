@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	}
 	reply->clear();
     }
-    std::cout << "Average round trip cost: " << (int) (s_clock() -
+    std::cout << "Average round trip cost: " << (int) (s_clock() - 
 						       start) /
 	10 << " usec \n";
 
