@@ -1,4 +1,4 @@
-//-----------------ZMQ_freelance2_SERVER---------------
+//-----------------ZMQ_CPP_FREELANCE2_SERVER---------------
 #include <zmq.hpp>
 #include <zmsg.hpp>
 #include <stdio.h>
@@ -23,14 +23,18 @@ int main(int argc, char *argv[])
 	if (!msg)
 	    break;
 
-	assert(msg->parts() == 3);
+	assert(msg->parts() == 2);
 
-	char *identity = (char *) (*msg).pop_front().c_str();
-	msg->clear();
+	std::string identity = (char *) (*msg).pop_front().c_str();
+	std::string sequence = (char *) (*msg).pop_front().c_str();
+
+	//debug purpose
+	//std::cout << "Part1 received : " << identity << std::endl;
+	//std::cout << "Part2 received : " << sequence << std::endl;
 
 	zmsg *reply = new zmsg();
-	reply->body_set(identity);
-	reply->push_front("OK");
+	reply->push_front(const_cast<char*>(identity.c_str()));
+	reply->push_front(const_cast<char*>(sequence.c_str()));
 	reply->send(*server);
     }
 

@@ -3,6 +3,7 @@
 #include <zmsg.hpp>
 #include <zhelpers.hpp>
 #include <iostream>
+//#include <czmq.h>
 
 #define GLOBAL_TIMEOUT 2500
 
@@ -13,8 +14,8 @@ void flclient_connect(flclient_t * self, char *endpoint);
 zmsg *flclient_request(flclient_t * self, zmsg ** request_p);
 
 struct _flclient_t {
-    zmq::context_t *ctx;
-    zmq::socket_t *socket;
+    zmq::context_t * ctx;
+    zmq::socket_t * socket;
     size_t servers;
     uint sequence;
 };
@@ -22,7 +23,7 @@ struct _flclient_t {
 flclient_t *flclient_new(void)
 {
     flclient_t *self;
-    self = (flclient_t *) malloc (sizeof(flclient_t));
+    self = (flclient_t *) calloc(1, sizeof(flclient_t));
     self->ctx = new zmq::context_t(1);
     self->socket = new zmq::socket_t(*(self->ctx), ZMQ_DEALER);
     return self;
@@ -48,6 +49,7 @@ void flclient_connect(flclient_t * self, char *endpoint)
 
 zmsg *flclient_request(flclient_t * self, zmsg ** request_p)
 {
+    int debug = 0;
     assert(self);
     assert(*request_p);
     zmsg *request = *request_p;
@@ -64,24 +66,38 @@ zmsg *flclient_request(flclient_t * self, zmsg ** request_p)
     }
 
     zmsg *reply = NULL;
+    std::string part1, part2, part3;
+    part1.clear();
+    part2.clear();
+    part3.clear();
     uint64_t endtime = s_clock() + GLOBAL_TIMEOUT;
     while (s_clock() < endtime) {
 	std::cout.clear();
 	zmq::pollitem_t items[] = {
-	    {*(self->socket), 0, ZMQ_POLLIN, 0}
+	    {
+	    *(self->socket), 0, ZMQ_POLLIN, 0}
 	};
-//----------------debug point----------------------
-	zmq::poll(items, 1, (endtime - s_clock()) * 1000);
-
+	int rc = zmq::poll(items, 1, (endtime - s_clock()) * 1000);
+	if (rc == -1)
+	    break;
+	std::cout.clear();
 	if (items[0].revents & ZMQ_POLLIN) {
-	    reply->recv(*(self->socket));
+	    reply = new zmsg(*(self->socket));
 	    assert(reply->parts() == 3);
-	    free((void *) reply->pop_front().c_str());
-	std::cout << "Debug: " << debug++ << std::endl;
 
-	    char *sequence = (char *) reply->pop_front().c_str();
-	    int sequence_nbr = atoi(sequence);
-	    free(sequence);
+	    part1 = (char *) reply->pop_front().c_str();
+	    part2 = (char *) reply->pop_front().c_str();
+	    part3 = (char *) reply->pop_front().c_str();
+
+	    //debug purpose
+	    //std::cout << "First frame : " << part1 << std::endl;
+	    //std::cout << "second frame : " << part2 << std::endl;
+	    //std::cout << "third frame : " << part3 << std::endl;
+
+	    int sequence_nbr = atoi(part3.c_str());
+	    //std::cout << "received sequence no. from third frame : " << sequence_nbr << std::endl;
+	    //std::cout << "Our sequence number: " << self->sequence << std::endl;
+
 	    if (sequence_nbr == self->sequence)
 		break;
 	    reply->clear();
